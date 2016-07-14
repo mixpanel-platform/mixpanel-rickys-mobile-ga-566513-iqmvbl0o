@@ -5,11 +5,77 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.mxpnl.com/libs/mixpanel-platform/css/reset.css">
     <link rel="stylesheet" type="text/css" href="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.css">
     <script src="https://cdn.mxpnl.com/libs/mixpanel-platform/build/mixpanel-platform.v0.latest.min.js"></script>
+
   </head>
   <body class="mixpanel-platform-body">
-    <h1>Hello, World!</h1>
+    <div class="mixpanel-platform-section">
+        <div id="dateSelect" style="float: left;"></div>
+        <div id="eventSelect" style="float: left;"></div>
+        <div style="clear: both;"></div>
+        <div id="lineChart" style="margin-top: 10px;"></div>
+    </div>
     <script>
-      // Run queries and display results here
+      var lineChart = $('#lineChart').MPChart({chartType: 'line'}),
+          table = $('#table').MPTable(),
+          eventSelector = $('#eventSelect').MPEventSelect(),
+          params = {
+            from: moment().subtract(6, 'months'),
+            to: moment(),
+            unit: 'day',
+            interval_count: 30,
+            limit: 270,
+          },
+          chartData = {
+            'Day 0': {},
+            'Day 1': {},
+            'Day 7': {},
+            'Day 30': {},
+          };
+      
+      eventSelector.on('change', function(e, retention_event) {
+        params.born_event = retention_event;
+        params.retention_event = retention_event;
+        
+        MP.api.retention(undefined, params).done(function(results) {
+
+          $.each(results.values(), function(k, v) {
+            if (v.counts[0]) {
+              chartData['Day 0'][k] = 100 * v.counts[0] / v.first;  
+            }
+            if (v.counts[1]) {
+              chartData['Day 1'][k] = 100 * v.counts[1] / v.first;
+            }
+            if (v.counts[7]) {
+              chartData['Day 7'][k] = 100 * v.counts[7] / v.first;
+            }
+            if (v.counts[30]) {
+              chartData['Day 30'][k] = 100 * v.counts[30] / v.first;
+            }
+          });
+          
+          lineChart.MPChart('setData', chartData);
+        });
+      });
+
+      MP.api.retention(undefined, params).done(function(results) {
+
+        $.each(results.values(), function(k, v) {
+          if (v.counts[0]) {
+            chartData['Day 0'][k] = 100 * v.counts[0] / v.first;  
+          }
+          if (v.counts[1]) {
+            chartData['Day 1'][k] = 100 * v.counts[1] / v.first;
+          }
+          if (v.counts[7]) {
+            chartData['Day 7'][k] = 100 * v.counts[7] / v.first;
+          }
+          if (v.counts[30]) {
+            chartData['Day 30'][k] = 100 * v.counts[30] / v.first;
+          }
+        });
+        
+        lineChart.MPChart('setData', chartData);
+      });
     </script>
   </body>
 </html>
